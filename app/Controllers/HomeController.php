@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 class HomeController {
     public function index() {
-        echo "The MVC is alive!";
+        echo "<h1>hello zakarya wach hani </h1>";
     }
 }
 
