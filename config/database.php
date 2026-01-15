@@ -1,7 +1,7 @@
 <?php
 return [
     'host' => '127.0.0.1', 
-    'db_name' => 'blogcms',
+    'db_name' => 'shopeasy',
     'username' => 'root',
     'password' => '',
     'port' => '3307' 
