@@ -39,14 +39,51 @@ private $db;
     public function setBalanceAfter(int $balance): void { $this->balance_after = $balance; }
 
     public function calculatePoints(float $amount): int {
-        
+        $point = (int) floor($amount/100) * 10;
+        return $point;
     }
 
     public function addTransaction(int $userId, int $amount, string $type): bool {
-        
+        $sql_get_balance = "SELECT total_points FROM users WHERE id = :id";
+        $query_get_balance = $this->db->getConnection()->prepare($sql_get_balance);
+        $query_get_balance->bindValue(":id", $userId ,PDO::PARAM_INT);
+        $query_get_balance->execute();
+        $result_get_balance = $query_get_balance->fetch();
+
+        $new_balance_after = ((int) $result_get_balance['total_points']) + $amount;
+
+        try {
+            $this->db->getConnection()->beginTransaction();
+                
+            $sql = "INSERT INTO points_transactions (user_id ,type, amount , description , balance_after) VALUES (:user_id ,:type, :amount , :description , :balance_after )";
+            $query = $this->db->getConnection()->prepare($sql);
+            $query->bindValue(":user_id", $userId ,PDO::PARAM_INT);
+            $query->bindValue(":type", $type);
+            $query->bindValue(":amount", $amount ,PDO::PARAM_INT);
+            $query->bindValue(":description", "");
+            $query->bindValue(":balance_after", $new_balance_after);
+            $query->execute();
+
+            $sql_update_user = "UPDATE users SET total_points = :new_points WHERE id = :id";
+            $update_query = $conn->prepare($sql_update_user);
+            $update_query->bindValue(":new_points", $new_balance_after, PDO::PARAM_INT);
+            $update_query->bindValue(":id", $userId, PDO::PARAM_INT);
+            $update_query->execute();
+
+            $this->db->getConnection()->commit();
+            return true;
+            
+        } catch (Exception $e) {
+            $this->db->getConnection()->rollBack();
+            return false;
+        }        
     }
 
     public function getHistory(int $userId): array {
-        
+        $sql = "SELECT * FROM points_transactions WHERE user_id = :user_id ORDER BY createdat DESC";
+        $query = $this->db->getConnection()->prepare($sql);
+        $query->bindValue(":user_id", $userId, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 }
