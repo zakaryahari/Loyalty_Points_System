@@ -35,5 +35,16 @@ class AuthController extends BaseController {
         ]);
     }
 
-    
+    public function register() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userModel = new User($this->db);
+
+            if ($userModel->register($_POST)) {
+                header('Location: /login');
+                exit();
+            }
+        }
+
+        return $this->render('auth/register.twig');
+    }
 }
